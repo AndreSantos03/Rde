@@ -47,7 +47,7 @@
     ```
     What we captured in Wireshark is in ficheiro exp3-passo7-rcom-noipforward.
 
-    Now we are going to do the same as step 5 and 6, but we first enable ip forwarding.
+    Now we are going to do the same as step 5 and 6, but we first enable ip forwarding in Tux64.
 
     ```bash
     sysctl net.ipv4.ip_forward=1
