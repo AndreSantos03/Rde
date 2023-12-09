@@ -103,7 +103,6 @@ int readResponse(const int socket, char* buffer) {
         }
     }
     sscanf(buffer, RESPCODE_REGEX, &responseCode);
-    printf("response code: %d\n", responseCode);
     return responseCode;
 }
 
@@ -165,7 +164,7 @@ void passiveMode(const int socket, char *ip, int *port) {
     char response[MAX_LENGTH];
     write(socket, "pasv\n", 5);
     if (readResponse(socket, response) != SERVER_ENTERING_PASSIVE_MODE){
-        printf("Failed entering passive mode!");
+        printf("Failed entering passive mode!\n");
         exit(-1);
     }
 
@@ -190,15 +189,63 @@ void sendRetrievalCommand(const int socket, const char *resource) {
 
 void requestFile(const int socket, const char *resource) {
     sendRetrievalCommand(socket, resource);
+
     char answer[MAX_LENGTH];
-    printf("goat\n");
     int responseCode = readResponse(socket, answer);
+    
     if(responseCode != SERVER_READY_FOR_TRANSFER){
         printf("Requested resource does not exist!");
         exit(-1);
     }
 }
 
+void getFile(const int socketA, const int socketB, char *filename){
+    FILE *fd = fopen(filename, "wb");
+
+    if (fd == NULL) {
+        printf("Error with getting the file!\n");
+        exit(-1);
+    }
+
+    char buffer[MAX_LENGTH];
+    int bytes, totalBytes = 0;
+
+    while ((bytes = recv(socketB, buffer, MAX_LENGTH, 0)) > 0) {
+        if (fwrite(buffer, bytes, 1, fd) < 0) {
+            fclose(fd);
+            printf("Error opening file '%s'\n", filename);
+            exit(-1);
+        }
+        totalBytes += bytes;
+    }
+
+
+
+    fclose(fd);
+
+    int responseCode = readResponse(socketA, buffer);
+    if(responseCode != SERVER_TRANSFER_COMPLETE){
+        printf("Error transfering file!");
+        exit(-1);
+    }
+    else{
+        double sizeInMB = (double)totalBytes / (1024 * 1024);
+        printf("Finished Tranferring File with %f MB",sizeInMB);
+    }
+}
+
+void closeConnection(const int socketOne, const int socketTwo) {
+    
+    char response[MAX_LENGTH];
+    write(socketOne, "quit\n", 5);
+    if(readResponse(socketOne, response) != SERVER_GOODBYE)
+    {
+        printf("Error closing connection!\n");
+        exit(-1);
+    }
+    close(socketOne);
+    close(socketTwo);
+}
 
 
 int main(int argc, char **argv){
@@ -227,10 +274,10 @@ int main(int argc, char **argv){
     char ip[40];
     passiveMode(socketOne, ip, &port);
 
-/*     int socketTwo = createSocket(ip,port);
- */
+    int socketTwo = createSocket(ip,port);
     requestFile(socketOne, url.resource);
-    printf("url resource: %s", url.resource);
+    getFile(socketOne, socketTwo, url.file);
+    closeConnection(socketOne,socketTwo);
 
     return 0;
 }

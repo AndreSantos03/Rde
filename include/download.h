@@ -62,5 +62,7 @@ void handleMultipleState(const char byte, ResponseState *state, char *buffer, in
 void passiveMode(const int socket, char *ip, int *port);
 void sendRetrievalCommand(const int socket, const char *resource);
 void requestFile(const int socket, const char *resource);
+void getFile(const int socketA, const int socketB, char *filename);
+void closeConnection(const int socketA, const int socketB);
 
 #endif /* DOWNLOAD_H */
