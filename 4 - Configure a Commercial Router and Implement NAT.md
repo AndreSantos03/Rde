@@ -1,9 +1,7 @@
 /ip address add address=172.16.1.29/24 interface=ether1
-/ip address add address=172.16.21.254/24 interface=ethe2
-
+/ip address add address=172.16.21.254/24 interface=ether2
 
 Connect cable from T4 to Console or RouterMT depending who we're talking to
-
 
 route add default gw 172.16.20.254 #Tux3
 route add default gw 172.16.21.254 #Tux2 e Tux4
